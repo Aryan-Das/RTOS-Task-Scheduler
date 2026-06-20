@@ -12,7 +12,7 @@ LDFLAGS = -T linker.ld
 all: $(ELF)
 
 $(ELF): $(SRCS) linker.ld
-	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(ELF)
+	$(CXX) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(ELF)
 
 qemu: $(ELF)
 	qemu-system-arm -machine netduinoplus2 -nographic -kernel $(ELF)
