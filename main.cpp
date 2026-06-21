@@ -4,8 +4,13 @@
 #include "scheduler.hpp"
 
 void task_one() {
+    int i = 33;
     while(1) {
-        uart_putc('A');
+        ++i;
+        if(i > 126){
+            i = 33;
+        }
+        uart_putc((char) i);
     }
 }
 
@@ -15,8 +20,8 @@ void task_two() {
     }
 }
 
-static uint32_t stack_one[256];
-static uint32_t stack_two[256];
+static uint32_t stack_one[256] __attribute__((aligned(8)));
+static uint32_t stack_two[256] __attribute__((aligned(8)));
 
 
 int main(){
@@ -24,13 +29,24 @@ int main(){
 
     TCB tcb_one;
     TCB tcb_two;
+
     task_init(tcb_one, task_one, stack_one, 256, 1);
     task_init(tcb_two, task_two, stack_two, 256, 1);
 
-    
+    task_register(&tcb_one);
+    task_register(&tcb_two);
+
     const char* str = "Hello World!\n";
     for(const char* p = str; *p != '\0'; ++p){
         uart_putc(*p);
     }
+ 
+    current_task = task_list[0];
+
+    systick_init();
+  
+    scheduler_start();
+
+    while(1) {}
 }
 
