@@ -5,7 +5,7 @@ ELF     = $(TARGET).elf
 
 SRCS    = startup.s main.cpp
 
-CFLAGS  = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -nostdlib -nostartfiles -ffreestanding -g
+CFLAGS  = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -nostdlib -nostartfiles -ffreestanding -g -fno-exceptions -fno-rtti
 
 LDFLAGS = -T linker.ld
 
