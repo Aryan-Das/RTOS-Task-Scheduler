@@ -1,7 +1,7 @@
 #ifndef UART_HPP
 #define UART_HPP
 
-#include <cstdint>
+#include <stdint.h>
 
 volatile uint32_t* RCC_APB2ENR = (volatile uint32_t*)0x40023844;
 volatile uint32_t* RCC_AHB1ENR = (volatile uint32_t*)0x40023830;

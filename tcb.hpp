@@ -1,7 +1,7 @@
 #ifndef TCB_HPP
 #define TCB_HPP
 
-#include <cstdint>
+#include <stdint.h>
 
 enum TaskState{
     Running,
