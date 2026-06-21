@@ -6,17 +6,22 @@
 void task_one() {
     int i = 33;
     while(1) {
-        ++i;
-        if(i > 126){
-            i = 33;
-        }
-        uart_putc((char) i);
+        uart_putc('A');
     }
 }
 
 void task_two() {
     while(1) {
         uart_putc('B');
+    }
+}
+
+static uint32_t stack_idle[256] __attribute__((aligned(8)));
+TCB tcb_idle;
+
+void idle_task() {
+    while(1) {
+        asm volatile("wfi");
     }
 }
 
@@ -30,11 +35,13 @@ int main(){
     TCB tcb_one;
     TCB tcb_two;
 
-    task_init(tcb_one, task_one, stack_one, 256, 1);
-    task_init(tcb_two, task_two, stack_two, 256, 1);
+    task_init(tcb_one,  task_one,  stack_one,  256, 2);  
+    task_init(tcb_two,  task_two,  stack_two,  256, 2); 
+    task_init(tcb_idle, idle_task, stack_idle, 256, 0);  
 
     task_register(&tcb_one);
     task_register(&tcb_two);
+    task_register(&tcb_idle);
 
     const char* str = "Hello World!\n";
     for(const char* p = str; *p != '\0'; ++p){

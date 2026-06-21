@@ -29,13 +29,27 @@ void task_register(TCB* tcb) {
 bool scheduler_running = false;
 
 extern "C" void schedule() {
+    
     if (!scheduler_running) {
         scheduler_running = true;
         current_task = task_list[0];
         return;
     }
-    current_index = (current_index + 1) % task_count;
+    
+    current_task->state = Ready;
+    int highest_priority = -1;
+    int highest_priority_index = 0;
+    for(int i = 0; i < task_count; i++){
+        int idx = (current_index + 1 + i) % task_count;
+        if(task_list[idx]->state == Ready && task_list[idx]->priority > highest_priority){
+            highest_priority = task_list[idx]->priority;
+            highest_priority_index = idx;
+        }
+    }
+    current_index = highest_priority_index;
     current_task = task_list[current_index];
+    current_task->state = Running;
+    //uart_putc('0' + current_index);
 }
 
 
