@@ -2,31 +2,34 @@
 #include "uart.hpp"
 #include "tcb.hpp"
 #include "scheduler.hpp"
+#include "mutex.hpp"
+
+Mutex uart_mutex;
 
 void task_one() {
-    int count = 0;
     while(1) {
-        count++;
-        if(count % 10 == 0) {
-            uart_putc('A');
-            uart_putc('=');
-            uart_putc('0' + (count / 10) % 10);
-            uart_putc('\n');
-        }
+        mutex_lock(&uart_mutex);
+        uart_putc('H');
+        uart_putc('e');
+        uart_putc('l');
+        uart_putc('l');
+        uart_putc('o');
+        uart_putc('\n');
+        mutex_unlock(&uart_mutex);
         task_sleep(200);
     }
 }
 
 void task_two() {
-    int count = 0;
     while(1) {
-        count++;
-        if(count % 10 == 0) {
-            uart_putc('B');
-            uart_putc('=');
-            uart_putc('0' + (count / 10) % 10);
-            uart_putc('\n');
-        }
+        mutex_lock(&uart_mutex);
+        uart_putc('W');
+        uart_putc('o');
+        uart_putc('r');
+        uart_putc('l');
+        uart_putc('d');
+        uart_putc('\n');
+        mutex_unlock(&uart_mutex);
         task_sleep(50);
     }
 }
@@ -48,7 +51,7 @@ int main(){
 
     TCB tcb_one;
     TCB tcb_two;
-
+    mutex_init(&uart_mutex);
     task_create(tcb_one,  task_one,  stack_one,  256, 1);
     task_create(tcb_two,  task_two,  stack_two,  256, 1);
     task_create(tcb_idle, idle_task, stack_idle, 256, 0);
@@ -57,7 +60,7 @@ int main(){
     for(const char* p = str; *p != '\0'; ++p){
         uart_putc(*p);
     }
- 
+    
     current_task = task_list[0];
 
     systick_init();
