@@ -4,18 +4,32 @@
 #include "scheduler.hpp"
 
 void task_one() {
-    int i = 33;
+    int count = 0;
     while(1) {
-        uart_putc('A');
+        count++;
+        if(count % 10 == 0) {
+            uart_putc('A');
+            uart_putc('=');
+            uart_putc('0' + (count / 10) % 10);
+            uart_putc('\n');
+        }
+        task_sleep(200);
     }
 }
 
 void task_two() {
+    int count = 0;
     while(1) {
-        uart_putc('B');
+        count++;
+        if(count % 10 == 0) {
+            uart_putc('B');
+            uart_putc('=');
+            uart_putc('0' + (count / 10) % 10);
+            uart_putc('\n');
+        }
+        task_sleep(50);
     }
 }
-
 static uint32_t stack_idle[256] __attribute__((aligned(8)));
 TCB tcb_idle;
 
@@ -35,13 +49,9 @@ int main(){
     TCB tcb_one;
     TCB tcb_two;
 
-    task_init(tcb_one,  task_one,  stack_one,  256, 2);  
-    task_init(tcb_two,  task_two,  stack_two,  256, 2); 
-    task_init(tcb_idle, idle_task, stack_idle, 256, 0);  
-
-    task_register(&tcb_one);
-    task_register(&tcb_two);
-    task_register(&tcb_idle);
+    task_create(tcb_one,  task_one,  stack_one,  256, 1);
+    task_create(tcb_two,  task_two,  stack_two,  256, 1);
+    task_create(tcb_idle, idle_task, stack_idle, 256, 0);
 
     const char* str = "Hello World!\n";
     for(const char* p = str; *p != '\0'; ++p){

@@ -12,6 +12,8 @@ volatile uint32_t* SYST_CVR = (volatile uint32_t*)0xE000E018;
 volatile uint32_t* SCB_SHPR3 = (volatile uint32_t*)0xE000ED20;
 volatile uint32_t* ICSR = (volatile uint32_t*)0xE000ED04;
 
+uint32_t current_tick = 0;
+
 TCB* current_task = nullptr;
 
 
@@ -22,12 +24,17 @@ int current_index = 0;
 
 extern "C" void scheduler_start();
 
-void task_register(TCB* tcb) {
-    task_list[task_count++] = tcb;
-}
+
 
 bool scheduler_running = false;
 
+
+void task_register(TCB* tcb) {
+    task_list[task_count++] = tcb;
+}
+extern "C" void task_exit_error() {
+    while(1) {}
+}
 extern "C" void schedule() {
     
     if (!scheduler_running) {
@@ -60,7 +67,14 @@ extern "C" void HardFault_handler() {
 }
 
 extern "C" void SysTick_handler() {
-
+    current_tick += 1;
+    for(int i = 0; i < task_count; i++) {
+        if(task_list[i]->state == Blocked && 
+        (int32_t)(current_tick - task_list[i]->sleep_until) >= 0) {
+            task_list[i]->state = Ready;
+        }
+    }   
+    
     *ICSR = (1 << 28);
 }
 
@@ -71,9 +85,15 @@ void systick_init(){
     *SYST_CSR = (1 << 2) | (1 << 1) | (1 << 0);
 }
 
+// API Functions
 
-extern "C" void task_exit_error() {
-    while(1) {}
+void task_yield() {
+    *ICSR = (1 << 28);  // pend PendSV
+}
+void task_sleep(uint32_t ms){
+    current_task->state = Blocked;
+    current_task->sleep_until = current_tick + ms;
+    task_yield();
 }
 
 void task_init(TCB& tcb, void (*func)(), uint32_t* stack, uint32_t stack_size, int priority){
@@ -95,4 +115,23 @@ void task_init(TCB& tcb, void (*func)(), uint32_t* stack, uint32_t stack_size, i
     tcb.state = Ready;
     tcb.priority = priority;
 }
+
+void task_create(TCB& tcb, void (*func)(), uint32_t* stack, uint32_t stack_size, int priority){
+    task_init(tcb, func, stack, stack_size, priority);
+    task_register(&tcb);
+}
+
+void task_suspend(TCB* tcb) {
+    tcb->state = Blocked;
+}
+
+void task_resume(TCB* tcb) {
+    tcb->state = Ready;
+}
+
+
+
+
+
+
 #endif

@@ -17,7 +17,7 @@ struct TCB{
     uint32_t* stack_base;
     TaskState state;
     int priority;
-
+    uint32_t sleep_until;
 };
 
 
