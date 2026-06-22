@@ -15,8 +15,7 @@ $(ELF): $(SRCS) linker.ld
 	$(CXX) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(ELF)
 
 qemu: $(ELF)
-	qemu-system-arm -machine netduinoplus2 -nographic -kernel $(ELF)
-
+	qemu-system-arm -machine netduinoplus2 -nographic -kernel rtos.elf > output.txt 2>&1
 
 clean:
 	rm -f $(ELF)

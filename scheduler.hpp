@@ -40,10 +40,14 @@ extern "C" void schedule() {
     if (!scheduler_running) {
         scheduler_running = true;
         current_task = task_list[0];
+        current_task->state = Running; 
         return;
     }
     
-    current_task->state = Ready;
+    if (current_task->state == Running) {
+        current_task->state = Ready;
+    }
+
     int highest_priority = -1;
     int highest_priority_index = 0;
     for(int i = 0; i < task_count; i++){

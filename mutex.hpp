@@ -22,18 +22,22 @@ void mutex_init(Mutex* m) {
 }
 
 void mutex_lock(Mutex* m){
+    asm volatile("cpsid i" ::: "memory");
     if (m->locked){
         m->waiters[m->waiter_count++] = current_task;
         current_task->state = Blocked;
+        asm volatile("cpsie i" ::: "memory");
         task_yield();
     }   
     else{
         m->locked = true;
         m->lock_owner = current_task;
+        asm volatile("cpsie i" ::: "memory");
     }
    
 }
 void mutex_unlock(Mutex* m){
+    asm volatile("cpsid i" ::: "memory");
     if(m->waiter_count == 0){
         m->locked = false;
         m->lock_owner = nullptr;
@@ -53,6 +57,8 @@ void mutex_unlock(Mutex* m){
         m->waiters[m->waiter_count - 1] = nullptr;
         m->waiter_count--;       
     }
+    asm volatile("cpsie i" ::: "memory");
+    task_yield();
 }
 
 
