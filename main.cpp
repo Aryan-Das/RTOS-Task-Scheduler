@@ -15,31 +15,57 @@ PendSV save/restore path. */
 Semaphore data_ready;
 int shared_data = 0;
 
-void producer() {
+Mutex mutex_a;
+Mutex mutex_b;
+
+void task_a() {
     task_yield(); task_yield(); task_yield();
     while(1) {
-        shared_data++;
-        uart_putc('P');
-        uart_putc('0' + (shared_data % 10));
-        uart_putc('\n');
-        sem_post(&data_ready);
-        task_sleep(1000);
-        
+        mutex_lock(&mutex_a);
+        uart_putc('A'); uart_putc('1'); uart_putc('\n');
+        task_sleep(10);  // small delay to let task_b acquire mutex_b
+        mutex_lock(&mutex_b);  // will block forever
+        uart_putc('A'); uart_putc('2'); uart_putc('\n');
+        mutex_unlock(&mutex_b);
+        mutex_unlock(&mutex_a);
     }
 }
 
-void consumer() {
+void task_b() {
     task_yield(); task_yield(); task_yield();
     while(1) {
-        sem_wait(&data_ready); 
-        uart_putc('C'); 
-        uart_putc('0' + (shared_data % 10));
-        uart_putc('\n');
+        mutex_lock(&mutex_b);
+        uart_putc('B'); uart_putc('1'); uart_putc('\n');
+        task_sleep(10);  // small delay to let task_a acquire mutex_a
+        mutex_lock(&mutex_a);  // will block forever
+        uart_putc('B'); uart_putc('2'); uart_putc('\n');
+        mutex_unlock(&mutex_a);
+        mutex_unlock(&mutex_b);
     }
 }
+
+
+
+void deadlock_tracker() {
+    task_yield(); task_yield(); task_yield();
+    while(1) {
+        task_sleep(500);  
+       
+        for(int i = 0; i < task_count; i++) {
+            if(task_list[i]->state == Blocked) {
+                uart_putc('D'); 
+                uart_putc('!');
+                uart_putc('\n');
+                return; 
+            }
+        }
+    }
+}
+
 TCB tcb_idle;
 TCB tcb_one;
 TCB tcb_two;
+TCB tcb_deadlock_tracker;
 
 void idle_task() {
     while(1) {
@@ -52,40 +78,19 @@ static uint32_t guard_one[16];
 static uint32_t stack_two[512] __attribute__((aligned(8)));
 static uint32_t guard_two[16];
 static uint32_t stack_idle[512] __attribute__((aligned(8)));
-
+static uint32_t guard_three[16];
+static uint32_t stack_deadlock[512] __attribute__((aligned(8)));
 
 int main(){
     configure_uart();
     
     mutex_init(&uart_mutex);
     sem_init(&data_ready, 0, 8);  
-    task_create(tcb_one,  producer, stack_one,  512, 1);
-    task_create(tcb_two,  consumer, stack_two,  512, 1);
+    task_create(tcb_one,  task_a, stack_one,  512, 1);
+    task_create(tcb_two,  task_b, stack_two,  512, 1);
     task_create(tcb_idle, idle_task, stack_idle, 512, 0);
+    task_create(tcb_deadlock_tracker, deadlock_tracker, stack_deadlock, 512, 1);
 
-    // print uart_mutex address
-    uint32_t addr = (uint32_t)&uart_mutex;
-    for(int i = 28; i >= 0; i -= 4) {
-        uint8_t n = (addr >> i) & 0xF;
-        uart_putc(n < 10 ? '0'+n : 'A'+n-10);
-    }
-    uart_putc('\n');
-
-    // print stack_one range
-    uint32_t s1 = (uint32_t)stack_one;
-    uint32_t s1top = s1 + 256*4;
-    for(int i = 28; i >= 0; i -= 4) {
-        uint8_t n = (s1 >> i) & 0xF;
-        uart_putc(n < 10 ? '0'+n : 'A'+n-10);
-    }
-    uart_putc('\n');
-    for(int i = 28; i >= 0; i -= 4) {
-        uint8_t n = (s1top >> i) & 0xF;
-        uart_putc(n < 10 ? '0'+n : 'A'+n-10);
-    }
-    uart_putc('\n');
-
-    // print stack_two range
     uint32_t s2 = (uint32_t)stack_two;
     uint32_t s2top = s2 + 256*4;
     for(int i = 28; i >= 0; i -= 4) {
