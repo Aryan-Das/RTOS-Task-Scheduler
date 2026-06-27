@@ -5,7 +5,7 @@ ELF     = $(TARGET).elf
 
 SRCS    = startup.s main.cpp
 
-CFLAGS  = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -nostdlib -nostartfiles -ffreestanding -g -fno-exceptions -fno-rtti
+CFLAGS  = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -nostdlib -nostartfiles -ffreestanding -g -fno-exceptions -fno-rtti 
 
 LDFLAGS = -T linker.ld
 
@@ -15,7 +15,7 @@ $(ELF): $(SRCS) linker.ld
 	$(CXX) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(ELF)
 
 qemu: $(ELF)
-	qemu-system-arm -machine netduinoplus2 -nographic -kernel rtos.elf > output.txt 2>&1
+	qemu-system-arm -machine netduinoplus2 -nographic -kernel rtos.elf 
 
 clean:
 	rm -f $(ELF)

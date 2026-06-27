@@ -7,6 +7,7 @@ enum TaskState{
     Running,
     Ready,
     Blocked, 
+    Sleeping,
     Inactive
 };
 

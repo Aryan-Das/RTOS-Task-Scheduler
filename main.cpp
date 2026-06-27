@@ -3,6 +3,7 @@
 #include "tcb.hpp"
 #include "scheduler.hpp"
 #include "mutex.hpp"
+#include "semaphore.hpp"
 
 Mutex uart_mutex;
 
@@ -11,36 +12,29 @@ Mutex uart_mutex;
 before scheduler state fully initializes. Subsequent switches are 
 correct. Root cause: initial PSP setup doesn't go through full 
 PendSV save/restore path. */
+Semaphore data_ready;
+int shared_data = 0;
 
-void task_one() {
-    task_yield();
-    task_yield();
-    task_yield();
+void producer() {
+    task_yield(); task_yield(); task_yield();
     while(1) {
-        mutex_lock(&uart_mutex);
-        uart_putc('H');
-        uart_putc('e');
-        uart_putc('l');
-        uart_putc('l');
-        uart_putc('o');
+        shared_data++;
+        uart_putc('P');
+        uart_putc('0' + (shared_data % 10));
         uart_putc('\n');
-        mutex_unlock(&uart_mutex);
-
+        sem_post(&data_ready);
+        task_sleep(1000);
+        
     }
 }
 
-void task_two() {
-
+void consumer() {
+    task_yield(); task_yield(); task_yield();
     while(1) {
-        mutex_lock(&uart_mutex);
-        uart_putc('W');
-        uart_putc('o');
-        uart_putc('r');
-        uart_putc('l');
-        uart_putc('d');
+        sem_wait(&data_ready); 
+        uart_putc('C'); 
+        uart_putc('0' + (shared_data % 10));
         uart_putc('\n');
-        mutex_unlock(&uart_mutex);
-    
     }
 }
 TCB tcb_idle;
@@ -62,11 +56,12 @@ static uint32_t stack_idle[512] __attribute__((aligned(8)));
 
 int main(){
     configure_uart();
-
+    
     mutex_init(&uart_mutex);
-    task_create(tcb_one,  task_one,  stack_one,  256, 1);
-    task_create(tcb_two,  task_two,  stack_two,  256, 1);
-    task_create(tcb_idle, idle_task, stack_idle, 256, 0);
+    sem_init(&data_ready, 0, 8);  
+    task_create(tcb_one,  producer, stack_one,  512, 1);
+    task_create(tcb_two,  consumer, stack_two,  512, 1);
+    task_create(tcb_idle, idle_task, stack_idle, 512, 0);
 
     // print uart_mutex address
     uint32_t addr = (uint32_t)&uart_mutex;
@@ -96,6 +91,7 @@ int main(){
     for(int i = 28; i >= 0; i -= 4) {
         uint8_t n = (s2 >> i) & 0xF;
         uart_putc(n < 10 ? '0'+n : 'A'+n-10);
+        
     }
     uart_putc('\n');
     for(int i = 28; i >= 0; i -= 4) {

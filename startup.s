@@ -99,7 +99,7 @@ PendSV_handler:
     ldr r1, =current_task
     ldr r1, [r1]
     str r0, [r1, #8]
-
+    
     skip_save:
     @ call the schedule function, which moves to the next task 
     push {lr}         

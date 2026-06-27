@@ -66,14 +66,21 @@ extern "C" void schedule() {
 
 extern "C" void HardFault_handler() {
     uart_putc('!');
-    
+    volatile uint32_t* msp;
+    asm volatile("mrs %0, msp" : "=r"(msp));
+    uint32_t pc = msp[6];
+    for(int i = 28; i >= 0; i -= 4) {
+        uint8_t n = (pc >> i) & 0xF;
+        uart_putc(n < 10 ? '0'+n : 'A'+n-10);
+    }
+    uart_putc('\n');
     while(1) {}
 }
 
 extern "C" void SysTick_handler() {
     current_tick += 1;
     for(int i = 0; i < task_count; i++) {
-        if(task_list[i]->state == Blocked && 
+        if(task_list[i]->state == Sleeping && 
         (int32_t)(current_tick - task_list[i]->sleep_until) >= 0) {
             task_list[i]->state = Ready;
         }
@@ -95,7 +102,7 @@ void task_yield() {
     *ICSR = (1 << 28);  // pend PendSV
 }
 void task_sleep(uint32_t ms){
-    current_task->state = Blocked;
+    current_task->state = Sleeping;
     current_task->sleep_until = current_tick + ms;
     task_yield();
 }

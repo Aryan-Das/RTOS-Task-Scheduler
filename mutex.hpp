@@ -51,11 +51,13 @@ void mutex_unlock(Mutex* m){
         }
 
         m->lock_owner = m->waiters[highest];
-        m->lock_owner->state = Ready;
+        
 
         m->waiters[highest] = m->waiters[m->waiter_count - 1];
         m->waiters[m->waiter_count - 1] = nullptr;
-        m->waiter_count--;       
+        m->waiter_count--;   
+        
+        m->lock_owner->state = Ready;
     }
     asm volatile("cpsie i" ::: "memory");
     task_yield();
