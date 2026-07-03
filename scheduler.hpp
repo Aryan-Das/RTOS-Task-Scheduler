@@ -60,6 +60,8 @@ extern "C" void schedule() {
     current_index = highest_priority_index;
     current_task = task_list[current_index];
     current_task->state = Running;
+    current_task->context_switches++;
+
     //uart_putc('0' + current_index);
 }
 
@@ -107,9 +109,9 @@ void task_sleep(uint32_t ms){
     task_yield();
 }
 
-void task_init(TCB& tcb, void (*func)(), uint32_t* stack, uint32_t stack_size, int priority){
+void task_init(TCB& tcb, const char* name, void (*func)(), uint32_t* stack, uint32_t stack_size, int priority){
     uint32_t* stack_top = stack + stack_size;
-
+    
     stack_top = (uint32_t*)((uint32_t)stack_top & ~0x7);
     *(--stack_top) = 0x01000000;
     *(--stack_top) = (uint32_t)func & ~1U;    // PC - must have LSB clear
@@ -119,16 +121,23 @@ void task_init(TCB& tcb, void (*func)(), uint32_t* stack, uint32_t stack_size, i
 
     // r11-r4
     for(int i = 0; i < 8; ++i) *(--stack_top) = 0;
+    
 
-
+    uint32_t* fill = stack;
+    while(fill < stack_top) {
+        *fill++ = 0xDEADBEEF;
+    }
+    tcb.stack_size = stack_size;
+    tcb.name = name;
     tcb.stack_base = stack;
     tcb.stack_pointer = stack_top;
     tcb.state = Ready;
     tcb.priority = priority;
+    tcb.context_switches = 0;
 }
 
-void task_create(TCB& tcb, void (*func)(), uint32_t* stack, uint32_t stack_size, int priority){
-    task_init(tcb, func, stack, stack_size, priority);
+void task_create(TCB& tcb, const char* name, void (*func)(), uint32_t* stack, uint32_t stack_size, int priority){
+    task_init(tcb, name, func, stack, stack_size, priority);
     task_register(&tcb);
 }
 
@@ -141,7 +150,12 @@ void task_resume(TCB* tcb) {
 }
 
 
-
+uint32_t stack_hwm(TCB& tcb) {
+    uint32_t* p = tcb.stack_base;
+    while(*p == 0xDEADBEEF) p++;
+    uint32_t untouched = p - tcb.stack_base;  
+    return tcb.stack_size - untouched;
+}
 
 
 

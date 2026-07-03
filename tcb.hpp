@@ -19,6 +19,8 @@ struct TCB{
     TaskState state;
     int priority;
     uint32_t sleep_until;
+    uint32_t context_switches;
+    uint32_t stack_size;
 };
 
 

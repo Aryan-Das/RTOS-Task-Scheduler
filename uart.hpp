@@ -31,4 +31,32 @@ void uart_putc(char c){
     *USART1_DR = c;
 }
 
+void uart_print_str(const char* c){
+    while(*c != '\0'){
+        uart_putc(*(c++));
+    }
+}
+
+void uart_print_num(uint32_t num){
+    if (num == 0)
+    {
+        uart_putc('0');
+        return;
+    }
+
+    char digits[10];
+    int count = 0;
+
+    while (num > 0)
+    {
+        digits[count++] = '0' + (num % 10);
+        num /= 10;
+    }
+
+    while (count > 0)
+    {
+        uart_putc(digits[--count]);
+    }
+}
+
 #endif

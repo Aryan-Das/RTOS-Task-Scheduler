@@ -28,6 +28,7 @@ void task_a() {
         uart_putc('A'); uart_putc('2'); uart_putc('\n');
         mutex_unlock(&mutex_b);
         mutex_unlock(&mutex_a);
+
     }
 }
 
@@ -41,6 +42,31 @@ void task_b() {
         uart_putc('B'); uart_putc('2'); uart_putc('\n');
         mutex_unlock(&mutex_a);
         mutex_unlock(&mutex_b);
+
+    }
+}
+
+void stats_task() {
+    task_yield(); task_yield(); task_yield();
+    while(1) {
+        task_sleep(2000);
+        uart_putc('\n');
+        for(int i = 0; i < task_count; i++) {
+            TCB* t = task_list[i];
+            uart_print_str(t->name);
+            uart_print_str(" |state: ");
+            uart_print_num(t->state);
+            uart_print_str(" |priority: ");
+            uart_print_num(t->priority);
+            uart_print_str(" |switches: ");
+            uart_print_num(t->context_switches);
+            uart_print_str(" |stack: ");
+            
+            uart_print_num(stack_hwm(*t));
+            uart_putc('/');
+            uart_print_num(t->stack_size);
+            uart_putc('\n');
+        }
     }
 }
 
@@ -66,6 +92,7 @@ TCB tcb_idle;
 TCB tcb_one;
 TCB tcb_two;
 TCB tcb_deadlock_tracker;
+TCB tcb_stats;
 
 void idle_task() {
     while(1) {
@@ -80,17 +107,19 @@ static uint32_t guard_two[16];
 static uint32_t stack_idle[512] __attribute__((aligned(8)));
 static uint32_t guard_three[16];
 static uint32_t stack_deadlock[512] __attribute__((aligned(8)));
+static uint32_t guard_four[16];
+static uint32_t stack_stats[512] __attribute__((aligned(8)));
 
 int main(){
     configure_uart();
     
     mutex_init(&uart_mutex);
     sem_init(&data_ready, 0, 8);  
-    task_create(tcb_one,  task_a, stack_one,  512, 1);
-    task_create(tcb_two,  task_b, stack_two,  512, 1);
-    task_create(tcb_idle, idle_task, stack_idle, 512, 0);
-    task_create(tcb_deadlock_tracker, deadlock_tracker, stack_deadlock, 512, 1);
-
+    task_create(tcb_one,   "task_a",   task_a,    stack_one,   512, 1);
+    task_create(tcb_two,   "task_b",   task_b,    stack_two,   512, 1);
+    task_create(tcb_deadlock_tracker, "deadlock tracker", deadlock_tracker,  stack_deadlock, 512, 1);
+    task_create(tcb_stats, "stats",    stats_task, stack_stats, 512, 1);
+    task_create(tcb_idle,  "idle",     idle_task, stack_idle,  512, 0);
     uint32_t s2 = (uint32_t)stack_two;
     uint32_t s2top = s2 + 256*4;
     for(int i = 28; i >= 0; i -= 4) {
@@ -98,6 +127,7 @@ int main(){
         uart_putc(n < 10 ? '0'+n : 'A'+n-10);
         
     }
+
     uart_putc('\n');
     for(int i = 28; i >= 0; i -= 4) {
         uint8_t n = (s2top >> i) & 0xF;
