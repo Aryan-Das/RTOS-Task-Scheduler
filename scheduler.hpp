@@ -10,6 +10,7 @@ volatile uint32_t* SYST_CSR = (volatile uint32_t*)0xE000E010;
 volatile uint32_t* SYST_RVR = (volatile uint32_t*)0xE000E014;
 volatile uint32_t* SYST_CVR = (volatile uint32_t*)0xE000E018;
 volatile uint32_t* SCB_SHPR3 = (volatile uint32_t*)0xE000ED20;
+volatile uint32_t* SCB_CPACR = (volatile uint32_t*)0xE000ED88;
 volatile uint32_t* ICSR = (volatile uint32_t*)0xE000ED04;
 
 uint32_t current_tick = 0;
@@ -93,6 +94,7 @@ extern "C" void SysTick_handler() {
 
 void systick_init(){
     *SCB_SHPR3 |= (0xFF << 16); //set PendSV to lowest priority
+    *SCB_CPACR |= (0xF << 20); //enavle FPU
     *SYST_RVR = 16000; //set timer to countdown from 16,000
     *SYST_CVR = 0;
     *SYST_CSR = (1 << 2) | (1 << 1) | (1 << 0);
@@ -118,10 +120,12 @@ void task_init(TCB& tcb, const char* name, void (*func)(), uint32_t* stack, uint
     *(--stack_top) = (uint32_t)task_exit_error;
     // r12, r3, r2, r1, r0
     for(int i = 0; i < 5; ++i) *(--stack_top) = 0;
-
+    // s16-s31
+    for(int i = 0; i < 16; ++i) *(--stack_top) = 0;
     // r11-r4
     for(int i = 0; i < 8; ++i) *(--stack_top) = 0;
     
+
 
     uint32_t* fill = stack;
     while(fill < stack_top) {

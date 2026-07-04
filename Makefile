@@ -7,12 +7,13 @@ SRCS    = startup.s main.cpp
 
 CFLAGS  = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -nostdlib -nostartfiles -ffreestanding -g -fno-exceptions -fno-rtti 
 
-LDFLAGS = -T linker.ld
+LDFLAGS = -T linker.ld 
 
 all: $(ELF)
 
 $(ELF): $(SRCS) linker.ld
-	$(CXX) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(ELF)
+	$(CXX) $(CFLAGS) $(SRCS) $(LDFLAGS) -Wl,-Map=rtos.map -o $(ELF)
+
 
 qemu: $(ELF)
 	qemu-system-arm -machine netduinoplus2 -nographic -kernel rtos.elf 

@@ -59,4 +59,20 @@ void uart_print_num(uint32_t num){
     }
 }
 
+
+void uart_print_float(float f) {
+    if (f < 0) {
+        uart_putc('-');
+        f = -f;
+    }
+    uint32_t integer = (uint32_t)f;
+    uint32_t frac = (uint32_t)((f - integer) * 1000);
+    uart_print_num(integer);
+    uart_putc('.');
+   
+    if (frac < 100) uart_putc('0');
+    if (frac < 10) uart_putc('0');
+    uart_print_num(frac);
+}
+
 #endif

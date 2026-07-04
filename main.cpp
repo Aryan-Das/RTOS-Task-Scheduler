@@ -1,9 +1,13 @@
 #include <stdint.h>
+
 #include "uart.hpp"
 #include "tcb.hpp"
 #include "scheduler.hpp"
 #include "mutex.hpp"
 #include "semaphore.hpp"
+#include "math_utils.hpp"
+
+
 
 Mutex uart_mutex;
 
@@ -12,45 +16,80 @@ Mutex uart_mutex;
 before scheduler state fully initializes. Subsequent switches are 
 correct. Root cause: initial PSP setup doesn't go through full 
 PendSV save/restore path. */
+
+float sensor_reading = 0.0f;
+float filtered_output = 0.0f;
+
+Mutex sensor_mutex;
 Semaphore data_ready;
-int shared_data = 0;
 
-Mutex mutex_a;
-Mutex mutex_b;
+// for math library to call since I am using -nostdlib
+extern "C" void* _sbrk(int incr) {
+    return (void*)-1; 
+}
 
-void task_a() {
+
+
+void sensor_task() {
     task_yield(); task_yield(); task_yield();
+    static float angle = 0.0f;
     while(1) {
-        mutex_lock(&mutex_a);
-        uart_putc('A'); uart_putc('1'); uart_putc('\n');
-        task_sleep(10);  // small delay to let task_b acquire mutex_b
-        mutex_lock(&mutex_b);  // will block forever
-        uart_putc('A'); uart_putc('2'); uart_putc('\n');
-        mutex_unlock(&mutex_b);
-        mutex_unlock(&mutex_a);
-
+        float noise = ((current_tick * 1664525 + 1013904223) & 0xFF) / 255.0f * 0.1f - 0.05f; // simple pseudo random hash to simulate noise
+        float new_reading = sinf(angle) + noise;
+        
+        mutex_lock(&sensor_mutex);
+        sensor_reading = new_reading;
+        mutex_unlock(&sensor_mutex);
+        
+        sem_post(&data_ready);
+        angle += (PI / 50.0f);
+        task_sleep(10);
     }
 }
 
-void task_b() {
+void telemetry_task(){
     task_yield(); task_yield(); task_yield();
+    
     while(1) {
-        mutex_lock(&mutex_b);
-        uart_putc('B'); uart_putc('1'); uart_putc('\n');
-        task_sleep(10);  // small delay to let task_a acquire mutex_a
-        mutex_lock(&mutex_a);  // will block forever
-        uart_putc('B'); uart_putc('2'); uart_putc('\n');
-        mutex_unlock(&mutex_a);
-        mutex_unlock(&mutex_b);
 
+        task_sleep(500);
+        mutex_lock(&sensor_mutex);
+        float sensor = sensor_reading;
+        float filtered = filtered_output;
+        mutex_unlock(&sensor_mutex);
+        mutex_lock(&uart_mutex);
+        uart_print_str("sensor: ");
+        uart_print_float(sensor);
+        uart_print_str("\nfiltered: ");
+        uart_print_float(filtered);
+        uart_putc('\n');
+        mutex_unlock(&uart_mutex);
     }
 }
+
+
+void control_task() {
+    task_yield(); task_yield(); task_yield();
+    static float filtered = 0.0f;
+    while(1) {
+        sem_wait(&data_ready);
+        mutex_lock(&sensor_mutex);
+        float read_data = sensor_reading;
+        mutex_unlock(&sensor_mutex);
+        filtered = 0.1f * read_data + 0.9f * filtered;
+        mutex_lock(&sensor_mutex);
+        filtered_output = filtered;
+        mutex_unlock(&sensor_mutex);
+    }
+}
+
 
 void stats_task() {
     task_yield(); task_yield(); task_yield();
     while(1) {
         task_sleep(2000);
         uart_putc('\n');
+        mutex_lock(&uart_mutex);
         for(int i = 0; i < task_count; i++) {
             TCB* t = task_list[i];
             uart_print_str(t->name);
@@ -67,32 +106,17 @@ void stats_task() {
             uart_print_num(t->stack_size);
             uart_putc('\n');
         }
+        mutex_unlock(&uart_mutex);
     }
 }
 
 
 
-void deadlock_tracker() {
-    task_yield(); task_yield(); task_yield();
-    while(1) {
-        task_sleep(500);  
-       
-        for(int i = 0; i < task_count; i++) {
-            if(task_list[i]->state == Blocked) {
-                uart_putc('D'); 
-                uart_putc('!');
-                uart_putc('\n');
-                return; 
-            }
-        }
-    }
-}
-
-TCB tcb_idle;
-TCB tcb_one;
-TCB tcb_two;
-TCB tcb_deadlock_tracker;
+TCB tcb_sensor;
+TCB tcb_control;
+TCB tcb_telemetry;
 TCB tcb_stats;
+TCB tcb_idle;
 
 void idle_task() {
     while(1) {
@@ -100,44 +124,31 @@ void idle_task() {
     }
 }
 
-static uint32_t stack_one[512] __attribute__((aligned(8)));
-static uint32_t guard_one[16]; 
-static uint32_t stack_two[512] __attribute__((aligned(8)));
-static uint32_t guard_two[16];
-static uint32_t stack_idle[512] __attribute__((aligned(8)));
-static uint32_t guard_three[16];
-static uint32_t stack_deadlock[512] __attribute__((aligned(8)));
-static uint32_t guard_four[16];
-static uint32_t stack_stats[512] __attribute__((aligned(8)));
+static uint32_t stack_sensor[4096]    __attribute__((aligned(8)));
+static uint32_t stack_control[4096]   __attribute__((aligned(8)));
+static uint32_t stack_telemetry[4096] __attribute__((aligned(8)));
+static uint32_t stack_stats[1024]     __attribute__((aligned(8)));
+static uint32_t stack_idle[512]       __attribute__((aligned(8)));
 
 int main(){
     configure_uart();
     
-    mutex_init(&uart_mutex);
-    sem_init(&data_ready, 0, 8);  
-    task_create(tcb_one,   "task_a",   task_a,    stack_one,   512, 1);
-    task_create(tcb_two,   "task_b",   task_b,    stack_two,   512, 1);
-    task_create(tcb_deadlock_tracker, "deadlock tracker", deadlock_tracker,  stack_deadlock, 512, 1);
-    task_create(tcb_stats, "stats",    stats_task, stack_stats, 512, 1);
-    task_create(tcb_idle,  "idle",     idle_task, stack_idle,  512, 0);
-    uint32_t s2 = (uint32_t)stack_two;
-    uint32_t s2top = s2 + 256*4;
-    for(int i = 28; i >= 0; i -= 4) {
-        uint8_t n = (s2 >> i) & 0xF;
-        uart_putc(n < 10 ? '0'+n : 'A'+n-10);
-        
-    }
 
-    uart_putc('\n');
-    for(int i = 28; i >= 0; i -= 4) {
-        uint8_t n = (s2top >> i) & 0xF;
-        uart_putc(n < 10 ? '0'+n : 'A'+n-10);
-    }
-    uart_putc('\n');
+    mutex_init(&uart_mutex);
+    mutex_init(&sensor_mutex);
+    sem_init(&data_ready, 0, 8);  
+    task_create(tcb_sensor,   "sensor task",   sensor_task,    stack_sensor,   4096, 1);
+    task_create(tcb_control,   "control task",   control_task,  stack_control,   4096, 1);
+    task_create(tcb_telemetry, "telemetry task", telemetry_task,  stack_telemetry, 4096, 1);
+    task_create(tcb_stats, "stats",    stats_task, stack_stats, 1024, 1);
+    task_create(tcb_idle,  "idle",     idle_task, stack_idle,  512, 0);
+    
 
     current_task = task_list[0];
-    tcb_one.state = Ready;
-    tcb_two.state = Ready;
+    tcb_sensor.state = Ready;
+    tcb_control.state = Ready;
+    tcb_telemetry.state = Ready;
+    tcb_stats.state = Ready;
     tcb_idle.state = Ready;
     current_task = task_list[0];
     current_task->state = Running;

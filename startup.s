@@ -93,13 +93,15 @@ PendSV_handler:
 
     @ push current registers into r0
     mrs r0, psp
+
+    vstmdb r0!, {s16-s31}
     stmdb r0!, {r4-r11}
 
     @ store contents of r0 (our stack) at the address of our current task's stack pointer
     ldr r1, =current_task
     ldr r1, [r1]
     str r0, [r1, #8]
-    
+
     skip_save:
     @ call the schedule function, which moves to the next task 
     push {lr}         
@@ -111,6 +113,8 @@ PendSV_handler:
     ldr r1, [r1]
     ldr r0, [r1, #8]
     ldmia r0!, {r4-r11}
+    vldmia r0!, {s16-s31}
+
     msr psp, r0
 
     @ return to main
