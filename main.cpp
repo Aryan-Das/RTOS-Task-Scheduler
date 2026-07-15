@@ -1,6 +1,19 @@
 #include <stdint.h>
 
-#include "uart.hpp"
+#ifdef USE_SWO
+    #include "itm.hpp"
+    #define putc itm_putc
+    #define print_str itm_print_str
+    #define print_num itm_print_num
+    #define configure_print configure_itm
+#else
+    #include "uart.hpp"
+    #define putc uart_putc
+    #define print_str uart_print_str
+    #define print_num uart_print_num
+    #define configure_print configure_uart
+#endif
+
 #include "tcb.hpp"
 #include "scheduler.hpp"
 #include "mutex.hpp"
@@ -23,10 +36,7 @@ float filtered_output = 0.0f;
 Mutex sensor_mutex;
 Semaphore data_ready;
 
-// for math library to call since I am using -nostdlib
-extern "C" void* _sbrk(int incr) {
-    return (void*)-1; 
-}
+
 
 
 
@@ -58,11 +68,11 @@ void telemetry_task(){
         float filtered = filtered_output;
         mutex_unlock(&sensor_mutex);
         mutex_lock(&uart_mutex);
-        uart_print_str("sensor: ");
+        print_str("sensor: ");
         uart_print_float(sensor);
-        uart_print_str("\nfiltered: ");
+        print_str("\nfiltered: ");
         uart_print_float(filtered);
-        uart_putc('\n');
+        putc('\n');
         mutex_unlock(&uart_mutex);
     }
 }
@@ -88,23 +98,23 @@ void stats_task() {
     task_yield(); task_yield(); task_yield();
     while(1) {
         task_sleep(2000);
-        uart_putc('\n');
+        putc('\n');
         mutex_lock(&uart_mutex);
         for(int i = 0; i < task_count; i++) {
             TCB* t = task_list[i];
-            uart_print_str(t->name);
-            uart_print_str(" |state: ");
-            uart_print_num(t->state);
-            uart_print_str(" |priority: ");
-            uart_print_num(t->priority);
-            uart_print_str(" |switches: ");
-            uart_print_num(t->context_switches);
-            uart_print_str(" |stack: ");
+            print_str(t->name);
+            print_str(" |state: ");
+            print_num(t->state);
+            print_str(" |priority: ");
+            print_num(t->priority);
+            print_str(" |switches: ");
+            print_num(t->context_switches);
+            print_str(" |stack: ");
             
-            uart_print_num(stack_hwm(*t));
-            uart_putc('/');
-            uart_print_num(t->stack_size);
-            uart_putc('\n');
+            print_num(stack_hwm(*t));
+            putc('/');
+            print_num(t->stack_size);
+            putc('\n');
         }
         mutex_unlock(&uart_mutex);
     }
@@ -131,7 +141,7 @@ static uint32_t stack_stats[1024]     __attribute__((aligned(8)));
 static uint32_t stack_idle[512]       __attribute__((aligned(8)));
 
 int main(){
-    configure_uart();
+    configure_print();
     
 
     mutex_init(&uart_mutex);

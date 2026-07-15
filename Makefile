@@ -18,6 +18,15 @@ $(ELF): $(SRCS) linker.ld
 qemu: $(ELF)
 	qemu-system-arm -machine netduinoplus2 -nographic -kernel rtos.elf 
 
+
+flash: rtos.elf
+	arm-none-eabi-objcopy -O binary rtos.elf rtos.bin
+	st-flash write rtos.bin 0x8000000
+
+flashswo: rtos.elf
+	arm-none-eabi-objcopy -DUSE_SWO -O  binary rtos.elf rtos.bin
+	st-flash write rtos.bin 0x8000000
+
 clean:
 	rm -f $(ELF)
 
