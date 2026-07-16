@@ -3,9 +3,13 @@ CXX      = arm-none-eabi-gcc
 TARGET  = rtos
 ELF     = $(TARGET).elf
 
-SRCS    = startup.s main.cpp
+SRCS    = startup.s demo.cpp
 
 CFLAGS  = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -nostdlib -nostartfiles -ffreestanding -g -fno-exceptions -fno-rtti 
+
+ifeq ($(SWO),1)
+    CFLAGS += -DUSE_SWO
+endif
 
 LDFLAGS = -T linker.ld 
 
@@ -23,10 +27,9 @@ flash: rtos.elf
 	arm-none-eabi-objcopy -O binary rtos.elf rtos.bin
 	st-flash write rtos.bin 0x8000000
 
-flashswo: rtos.elf
-	arm-none-eabi-objcopy -DUSE_SWO -O  binary rtos.elf rtos.bin
-	st-flash write rtos.bin 0x8000000
+flashswo:
+	$(MAKE) clean
+	$(MAKE) SWO=1 flash
 
 clean:
-	rm -f $(ELF)
-
+	rm -f $(ELF) rtos.bin rtos.map
