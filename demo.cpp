@@ -145,7 +145,7 @@ static uint32_t stack_idle[512]       __attribute__((aligned(8)));
 
 int main(){
     *((volatile uint32_t*)0xE000ED88) |= (0xF << 20);
-   // configure_clock_168mhz();
+    configure_clock_168mhz();
     configure_print();
     
 

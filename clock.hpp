@@ -36,6 +36,14 @@ void configure_clock_168mhz() {
 
     *RCC_CFGR &= ~(0x7 << 13);  // clear PPRE2
     *RCC_CFGR |= (4 << 13);     // APB2
+
+
+    // switch SYSCLK source
+    *RCC_CFGR &= ~(0x3);        // clear SW bits
+    *RCC_CFGR |= 0x2;           // SW = PLL (0b10)
+
+    // wait for SWS to confirm PLL is actually driving SYSCLK
+    while (((*RCC_CFGR >> 2) & 0x3) != 0x2) {}
 }
 
 
