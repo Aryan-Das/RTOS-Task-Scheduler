@@ -73,8 +73,7 @@ rtos/
 - **QEMU limitations:** QEMU does not accurately emulate STM32 clock gating or GPIO alternate function configuration. The UART configure code is correct for real hardware but QEMU ignores it. Validated on QEMU; not yet tested on real hardware.
 - **No memory protection:** tasks can read/write each other's stacks. A production RTOS would use the Cortex-M4 MPU to isolate task address spaces.
 
-## Future Development
-
-- Flash to a physical STM32F4 Discovery board 
-- Add MPU (Memory Protection Unit) to isolate task stacks
-- Port the sensor demo to read a real I2C accelerometer on the actual board
+## Currently In Development
+- Validation on a real STM32F4
+- SPI IMU driver
+- PID controller
