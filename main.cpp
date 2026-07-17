@@ -7,13 +7,14 @@
     #define print_num itm_print_num
     #define configure_print configure_itm
 #else
-    #include "uart.hpp"
-    #define putc uart_putc
-    #define print_str uart_print_str
-    #define print_num uart_print_num
-    #define configure_print configure_uart
+    #include "uart2.hpp"
+    #define putc uart2_putc
+    #define print_str uart2_print_str
+    #define print_num uart2_print_num
+    #define configure_print configure_uart2
 #endif
 
+#include "clock"
 #include "tcb.hpp"
 #include "scheduler.hpp"
 #include "mutex.hpp"

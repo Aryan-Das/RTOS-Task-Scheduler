@@ -18,7 +18,7 @@ volatile uint32_t* ITM_TPR = (volatile uint32_t*)0xE0000E40;
 volatile uint32_t* ITM_TCR = (volatile uint32_t*)0xE0000E80;
 volatile uint32_t* ITM_LAR = (volatile uint32_t*)0xE0000FB0;
 
-uint32_t core_clock_hz = 16000000;
+uint32_t core_clock_hz = 168000000;
 uint32_t swo_baud_hz = 2000000;
 
 void configure_itm(){

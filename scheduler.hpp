@@ -4,7 +4,19 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "tcb.hpp"
-#include "uart.hpp"
+#ifdef USE_SWO
+    #include "itm.hpp"
+    #define putc itm_putc
+    #define print_str itm_print_str
+    #define print_num itm_print_num
+    #define configure_print configure_itm
+#else
+    #include "uart2.hpp"
+    #define putc uart2_putc
+    #define print_str uart2_print_str
+    #define print_num uart2_print_num
+    #define configure_print configure_uart2
+#endif
 
 volatile uint32_t* SYST_CSR = (volatile uint32_t*)0xE000E010;
 volatile uint32_t* SYST_RVR = (volatile uint32_t*)0xE000E014;
@@ -63,20 +75,20 @@ extern "C" void schedule() {
     current_task->state = Running;
     current_task->context_switches++;
 
-    //uart_putc('0' + current_index);
+    //putc('0' + current_index);
 }
 
 
 extern "C" void HardFault_handler() {
-    uart_putc('!');
+    putc('!');
     volatile uint32_t* msp;
     asm volatile("mrs %0, msp" : "=r"(msp));
     uint32_t pc = msp[6];
     for(int i = 28; i >= 0; i -= 4) {
         uint8_t n = (pc >> i) & 0xF;
-        uart_putc(n < 10 ? '0'+n : 'A'+n-10);
+        putc(n < 10 ? '0'+n : 'A'+n-10);
     }
-    uart_putc('\n');
+    putc('\n');
     while(1) {}
 }
 

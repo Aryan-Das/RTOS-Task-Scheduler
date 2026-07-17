@@ -6,14 +6,17 @@
     #define print_str itm_print_str
     #define print_num itm_print_num
     #define configure_print configure_itm
+    #define print_float itm_print_float
 #else
-    #include "uart.hpp"
-    #define putc uart_putc
-    #define print_str uart_print_str
-    #define print_num uart_print_num
-    #define configure_print configure_uart
+    #include "uart2.hpp"
+    #define putc uart2_putc
+    #define print_str uart2_print_str
+    #define print_num uart2_print_num
+    #define configure_print configure_uart2
+    #define print_float uart2_print_float
 #endif
 
+#include "clock.hpp"
 #include "tcb.hpp"
 #include "scheduler.hpp"
 #include "mutex.hpp"
@@ -69,9 +72,9 @@ void telemetry_task(){
         mutex_unlock(&sensor_mutex);
         mutex_lock(&uart_mutex);
         print_str("sensor: ");
-        uart_print_float(sensor);
+        print_float(sensor);
         print_str("\nfiltered: ");
-        uart_print_float(filtered);
+        print_float(filtered);
         putc('\n');
         mutex_unlock(&uart_mutex);
     }
@@ -141,6 +144,8 @@ static uint32_t stack_stats[1024]     __attribute__((aligned(8)));
 static uint32_t stack_idle[512]       __attribute__((aligned(8)));
 
 int main(){
+    *((volatile uint32_t*)0xE000ED88) |= (0xF << 20);
+   // configure_clock_168mhz();
     configure_print();
     
 
@@ -150,11 +155,11 @@ int main(){
         print_num(counter++);
         print_str("\n");
 
-        for (volatile int i = 0; i < 1000000; i++) {} // crude delay
+        for (volatile int i = 0; i < 20000000; i++) {}
     }
     systick_init();
-    scheduler_start();
+  
 
-    while(1) {}
+
 }
 

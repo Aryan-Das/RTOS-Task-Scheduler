@@ -22,7 +22,7 @@ void configure_uart(){
     *GPIOA_AFRH |= (1 << 6);
     *GPIOA_AFRH |= (1 << 5);
     *GPIOA_AFRH |= (1 << 4);
-    *USART1_BRR = 0x683;
+    *USART1_BRR = 0x2278;
     *USART1_CR1 |= (1 << 3);
     *USART1_CR1 |= (1 << 13);
 }
