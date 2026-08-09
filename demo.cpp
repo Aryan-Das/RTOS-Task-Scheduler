@@ -43,59 +43,62 @@ Semaphore data_ready;
 
 
 
-void sensor_task() {
+Mutex accel_mutex;
+AccelReadingG latest_accel;
+
+void imu_task() {
     task_yield(); task_yield(); task_yield();
-    static float angle = 0.0f;
     while(1) {
-        float noise = ((current_tick * 1664525 + 1013904223) & 0xFF) / 255.0f * 0.1f - 0.05f; // simple pseudo random hash to simulate noise
-        float new_reading = sinf(angle) + noise;
-        
-        mutex_lock(&sensor_mutex);
-        sensor_reading = new_reading;
-        mutex_unlock(&sensor_mutex);
-        
+        AccelReading raw = lis3dsh_read_accel();
+        AccelReadingG g = lis3dsh_to_g(raw);
+
+        mutex_lock(&accel_mutex);
+        latest_accel = g;
+        mutex_unlock(&accel_mutex);
+
         sem_post(&data_ready);
-        angle += (PI / 50.0f);
-        task_sleep(10);
+        task_sleep(10); // 100Hz
     }
 }
-
 void telemetry_task(){
     task_yield(); task_yield(); task_yield();
-    
     while(1) {
-
         task_sleep(500);
+        mutex_lock(&accel_mutex);
+        AccelReadingG a = latest_accel;
+        mutex_unlock(&accel_mutex);
         mutex_lock(&sensor_mutex);
-        float sensor = sensor_reading;
         float filtered = filtered_output;
         mutex_unlock(&sensor_mutex);
+
         mutex_lock(&uart_mutex);
-        print_str("sensor: ");
-        print_float(sensor);
-        print_str("\nfiltered: ");
+        print_str("accel x: ");
+        print_float(a.x);
+        print_str(" y: ");
+        print_float(a.y);
+        print_str(" z: ");
+        print_float(a.z);
+        print_str(" | filtered: ");
         print_float(filtered);
         putc('\n');
         mutex_unlock(&uart_mutex);
     }
 }
 
-
 void control_task() {
     task_yield(); task_yield(); task_yield();
     static float filtered = 0.0f;
     while(1) {
         sem_wait(&data_ready);
-        mutex_lock(&sensor_mutex);
-        float read_data = sensor_reading;
-        mutex_unlock(&sensor_mutex);
+        mutex_lock(&accel_mutex);
+        float read_data = latest_accel.z; // or x/y depending on what you want to stabilize
+        mutex_unlock(&accel_mutex);
         filtered = 0.1f * read_data + 0.9f * filtered;
         mutex_lock(&sensor_mutex);
         filtered_output = filtered;
         mutex_unlock(&sensor_mutex);
     }
 }
-
 
 void stats_task() {
     task_yield(); task_yield(); task_yield();
@@ -125,7 +128,7 @@ void stats_task() {
 
 
 
-TCB tcb_sensor;
+TCB tcb_imu;
 TCB tcb_control;
 TCB tcb_telemetry;
 TCB tcb_stats;
@@ -137,9 +140,9 @@ void idle_task() {
     }
 }
 
-static uint32_t stack_sensor[4096]    __attribute__((aligned(8)));
+static uint32_t stack_imu[4096]    __attribute__((aligned(8)));
 static uint32_t stack_control[4096]   __attribute__((aligned(8)));
-static uint32_t stack_telemetry[4096] __attribute__((aligned(8)));
+static uint32_t stack_telemetry[12288] __attribute__((aligned(8)));
 static uint32_t stack_stats[1024]     __attribute__((aligned(8)));
 static uint32_t stack_idle[512]       __attribute__((aligned(8)));
 
@@ -147,10 +150,21 @@ int main(){
     *((volatile uint32_t*)0xE000ED88) |= (0xF << 20); // FPU enable
 
     configure_clock_168mhz();
+    configure_print();    
     configure_lis3dsh();
+    lis3dsh_enable();
 
-    uint8_t who_am_i = lis3dsh_read_reg(LIS3DSH_WHO_AM_I);
+    mutex_init(&uart_mutex);
+    mutex_init(&sensor_mutex);
+    mutex_init(&accel_mutex);
+    sem_init(&data_ready, 0, 8);
+    task_create(tcb_imu,       "imu",       imu_task,       stack_imu,       4096, 2);
+    task_create(tcb_control,   "control",   control_task,   stack_control,   4096, 1);
+    task_create(tcb_telemetry, "telemetry", telemetry_task, stack_telemetry, 12288, 1);
+    task_create(tcb_stats,     "stats",     stats_task,     stack_stats,     1024, 1);
+    task_create(tcb_idle,      "idle",      idle_task,      stack_idle,      512,  0);
 
-    while (1) {} 
+    systick_init();
+    scheduler_start();
 }
 
