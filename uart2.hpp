@@ -29,7 +29,7 @@ void configure_uart2(){
     *GPIOA_AFRL &= ~(0xF << 12);
     *GPIOA_AFRL |= (0x7 << 12);    
 
-    *USART2_BRR = 0x683;            
+    *USART2_BRR = 0x1117;            
                                    
     *USART2_CR1 |= (1 << 3);        
     *USART2_CR1 |= (1 << 13);       

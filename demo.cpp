@@ -22,7 +22,7 @@
 #include "mutex.hpp"
 #include "semaphore.hpp"
 #include "math_utils.hpp"
-
+#include "lis3dsh.hpp"
 
 
 Mutex uart_mutex;
@@ -144,22 +144,13 @@ static uint32_t stack_stats[1024]     __attribute__((aligned(8)));
 static uint32_t stack_idle[512]       __attribute__((aligned(8)));
 
 int main(){
-    *((volatile uint32_t*)0xE000ED88) |= (0xF << 20);
+    *((volatile uint32_t*)0xE000ED88) |= (0xF << 20); // FPU enable
+
     configure_clock_168mhz();
-    configure_print();
-    
+    configure_lis3dsh();
 
-    uint32_t counter = 0;
-    while (1) {
-        print_str("tick: ");
-        print_num(counter++);
-        print_str("\n");
+    uint8_t who_am_i = lis3dsh_read_reg(LIS3DSH_WHO_AM_I);
 
-        for (volatile int i = 0; i < 20000000; i++) {}
-    }
-    systick_init();
-  
-
-
+    while (1) {} 
 }
 
