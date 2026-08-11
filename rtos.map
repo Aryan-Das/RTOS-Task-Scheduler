@@ -10,14 +10,14 @@ SRAM             0x20000000         0x00020000         xrw
 
 Linker script and memory map
 
-LOAD /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
-LOAD /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+LOAD /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
+LOAD /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
 
-.text           0x08000000     0x14ad
+.text           0x08000000     0x14bd
  *(.vector_table)
- .vector_table  0x08000000       0x40 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+ .vector_table  0x08000000       0x40 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
  *(.text*)
- .text          0x08000040       0xac /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+ .text          0x08000040       0xb4 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
                 0x08000040                UsageFault_handler
                 0x08000040                Default_handler
                 0x08000040                NMI_handler
@@ -25,78 +25,78 @@ LOAD /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
                 0x08000040                BusFault_handler
                 0x08000042                scheduler_start
                 0x08000068                PendSV_handler
-                0x080000a0                reset_handler
- .text          0x080000ec     0x1334 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
-                0x080000ec                configure_uart2()
-                0x080001dc                uart2_putc(char)
-                0x0800021c                uart2_print_str(char const*)
-                0x08000246                uart2_print_num(unsigned long)
-                0x080002c8                uart2_print_float(float)
-                0x0800035c                configure_clock_168mhz()
-                0x0800047c                task_register(TCB*)
-                0x080004a8                task_exit_error
-                0x080004ae                schedule
-                0x08000598                HardFault_handler
-                0x080005f6                SysTick_handler
-                0x08000670                systick_init()
-                0x080006cc                task_yield()
-                0x080006e8                task_sleep(unsigned long)
-                0x0800071c                task_init(TCB&, char const*, void (*)(), unsigned long*, unsigned long, int)
-                0x08000814                task_create(TCB&, char const*, void (*)(), unsigned long*, unsigned long, int)
-                0x08000844                task_suspend(TCB*)
-                0x0800085c                task_resume(TCB*)
-                0x08000874                stack_hwm(TCB&)
-                0x080008b8                mutex_init(Mutex*)
-                0x080008fc                mutex_lock(Mutex*)
-                0x08000950                mutex_unlock(Mutex*)
-                0x08000a00                sem_init(Semaphore*, int, int)
-                0x08000a48                sem_post(Semaphore*)
-                0x08000afc                sem_wait(Semaphore*)
-                0x08000b4c                sinf(float)
-                0x08000c0c                configure_spi1(unsigned char, unsigned char, unsigned char)
-                0x08000d48                spi1_transfer(unsigned char)
-                0x08000da8                cs_pin_init(CSPin)
-                0x08000e00                cs_low(CSPin)
-                0x08000e2c                cs_high(CSPin)
-                0x08000e56                configure_lis3dsh()
-                0x08000ea8                lis3dsh_read_reg(unsigned char)
-                0x08000eec                lis3dsh_write_reg(unsigned char, unsigned char)
-                0x08000f2c                lis3dsh_enable()
-                0x08000f3c                lis3dsh_read_accel()
-                0x08000fc6                lis3dsh_to_g(AccelReading)
-                0x08001070                imu_task()
-                0x080010e4                telemetry_task()
-                0x080011a4                control_task()
-                0x08001228                stats_task()
-                0x080012f8                idle_task()
-                0x08001300                main
+                0x080000a8                reset_handler
+ .text          0x080000f4     0x133c /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
+                0x080000f4                configure_uart2()
+                0x080001e4                uart2_putc(char)
+                0x08000224                uart2_print_str(char const*)
+                0x0800024e                uart2_print_num(unsigned long)
+                0x080002d0                uart2_print_float(float)
+                0x08000364                configure_clock_168mhz()
+                0x08000484                task_register(TCB*)
+                0x080004b0                task_exit_error
+                0x080004b6                schedule
+                0x080005a0                HardFault_handler
+                0x080005fe                SysTick_handler
+                0x08000678                systick_init()
+                0x080006d4                task_yield()
+                0x080006f0                task_sleep(unsigned long)
+                0x08000724                task_init(TCB&, char const*, void (*)(), unsigned long*, unsigned long, int)
+                0x08000824                task_create(TCB&, char const*, void (*)(), unsigned long*, unsigned long, int)
+                0x08000854                task_suspend(TCB*)
+                0x0800086c                task_resume(TCB*)
+                0x08000884                stack_hwm(TCB&)
+                0x080008c8                mutex_init(Mutex*)
+                0x0800090c                mutex_lock(Mutex*)
+                0x08000960                mutex_unlock(Mutex*)
+                0x08000a10                sem_init(Semaphore*, int, int)
+                0x08000a58                sem_post(Semaphore*)
+                0x08000b0c                sem_wait(Semaphore*)
+                0x08000b5c                sinf(float)
+                0x08000c1c                configure_spi1(unsigned char, unsigned char, unsigned char)
+                0x08000d58                spi1_transfer(unsigned char)
+                0x08000db8                cs_pin_init(CSPin)
+                0x08000e10                cs_low(CSPin)
+                0x08000e3c                cs_high(CSPin)
+                0x08000e66                configure_lis3dsh()
+                0x08000eb8                lis3dsh_read_reg(unsigned char)
+                0x08000efc                lis3dsh_write_reg(unsigned char, unsigned char)
+                0x08000f3c                lis3dsh_enable()
+                0x08000f4c                lis3dsh_read_accel()
+                0x08000fd6                lis3dsh_to_g(AccelReading)
+                0x08001080                imu_task()
+                0x080010f4                telemetry_task()
+                0x080011b4                control_task()
+                0x08001238                stats_task()
+                0x08001308                idle_task()
+                0x08001310                main
  *(.rodata*)
- .rodata        0x08001420       0x8d /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+ .rodata        0x08001430       0x8d /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
 
-.glue_7         0x080014b0        0x0
- .glue_7        0x080014b0        0x0 linker stubs
+.glue_7         0x080014c0        0x0
+ .glue_7        0x080014c0        0x0 linker stubs
 
-.glue_7t        0x080014b0        0x0
- .glue_7t       0x080014b0        0x0 linker stubs
+.glue_7t        0x080014c0        0x0
+ .glue_7t       0x080014c0        0x0 linker stubs
 
-.vfp11_veneer   0x080014b0        0x0
- .vfp11_veneer  0x080014b0        0x0 linker stubs
+.vfp11_veneer   0x080014c0        0x0
+ .vfp11_veneer  0x080014c0        0x0 linker stubs
 
-.v4_bx          0x080014b0        0x0
- .v4_bx         0x080014b0        0x0 linker stubs
+.v4_bx          0x080014c0        0x0
+ .v4_bx         0x080014c0        0x0 linker stubs
 
-.iplt           0x080014b0        0x0
- .iplt          0x080014b0        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+.iplt           0x080014c0        0x0
+ .iplt          0x080014c0        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
 
-.rel.dyn        0x080014b0        0x0
- .rel.iplt      0x080014b0        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+.rel.dyn        0x080014c0        0x0
+ .rel.iplt      0x080014c0        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
 
-.data           0x20000000       0x74 load address 0x080014ad
-                0x080014ad                        _data_load = LOADADDR (.data)
+.data           0x20000000       0x74 load address 0x080014bd
+                0x080014bd                        _data_load = LOADADDR (.data)
                 0x20000000                        _data_start = .
  *(.data*)
- .data          0x20000000        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
- .data          0x20000000       0x74 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+ .data          0x20000000        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
+ .data          0x20000000       0x74 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
                 0x20000000                RCC_APB1ENR
                 0x20000004                RCC_AHB1ENR_2
                 0x20000008                GPIOA_MODER_2
@@ -128,14 +128,14 @@ LOAD /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
                 0x20000070                GPIOE_ODR
                 0x20000074                        _data_end = .
 
-.igot.plt       0x20000074        0x0 load address 0x08001521
- .igot.plt      0x20000074        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+.igot.plt       0x20000074        0x0 load address 0x08001531
+ .igot.plt      0x20000074        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
 
-.bss            0x20000078    0x159c0 load address 0x08001521
+.bss            0x20000078    0x159d0 load address 0x08001531
                 0x20000078                        _bss_start = .
  *(.bss*)
- .bss           0x20000078        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
- .bss           0x20000078    0x159c0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+ .bss           0x20000078        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
+ .bss           0x20000078    0x159d0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
                 0x20000078                current_tick
                 0x2000007c                current_task
                 0x20000080                task_list
@@ -151,54 +151,54 @@ LOAD /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
                 0x20000144                accel_mutex
                 0x20000170                latest_accel
                 0x20000180                tcb_imu
-                0x200001a4                tcb_control
-                0x200001c8                tcb_telemetry
-                0x200001ec                tcb_stats
-                0x20000210                tcb_idle
+                0x200001a8                tcb_control
+                0x200001d0                tcb_telemetry
+                0x200001f8                tcb_stats
+                0x20000220                tcb_idle
  *(COMMON)
-                0x20015a38                        _bss_end = .
+                0x20015a48                        _bss_end = .
 OUTPUT(rtos.elf elf32-littlearm)
 LOAD linker stubs
 
 .ARM.attributes
                 0x00000000       0x35
  .ARM.attributes
-                0x00000000       0x25 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+                0x00000000       0x25 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
  .ARM.attributes
-                0x00000025       0x34 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+                0x00000025       0x34 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
 
 .comment        0x00000000       0x45
- .comment       0x00000000       0x45 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+ .comment       0x00000000       0x45 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
                                  0x46 (size before relaxing)
 
-.debug_line     0x00000000      0xaad
- .debug_line    0x00000000       0x8c /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
- .debug_line    0x0000008c      0xa21 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+.debug_line     0x00000000      0xab2
+ .debug_line    0x00000000       0x8e /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
+ .debug_line    0x0000008e      0xa24 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
 
 .debug_line_str
                 0x00000000       0x35
  .debug_line_str
-                0x00000000       0x35 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+                0x00000000       0x35 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
 
-.debug_info     0x00000000     0x10d9
- .debug_info    0x00000000       0x25 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
- .debug_info    0x00000025     0x10b4 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+.debug_info     0x00000000     0x10e6
+ .debug_info    0x00000000       0x25 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
+ .debug_info    0x00000025     0x10c1 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
 
 .debug_abbrev   0x00000000      0x297
- .debug_abbrev  0x00000000       0x14 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
- .debug_abbrev  0x00000014      0x283 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+ .debug_abbrev  0x00000000       0x14 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
+ .debug_abbrev  0x00000014      0x283 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
 
 .debug_aranges  0x00000000       0x40
  .debug_aranges
-                0x00000000       0x20 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+                0x00000000       0x20 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
  .debug_aranges
-                0x00000020       0x20 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+                0x00000020       0x20 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
 
-.debug_str      0x00000000      0xa95
- .debug_str     0x00000000      0xa95 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccoJSVDt.o
+.debug_str      0x00000000      0xaa0
+ .debug_str     0x00000000      0xaa0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccZ6EDlX.o
                                  0x43 (size before relaxing)
- .debug_str     0x00000a95        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
-                                0xb02 (size before relaxing)
+ .debug_str     0x00000aa0        0x0 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o
+                                0xb0d (size before relaxing)
 
 .debug_frame    0x00000000      0x618
- .debug_frame   0x00000000      0x618 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccN6psir.o
+ .debug_frame   0x00000000      0x618 /var/folders/6y/j2pyjsbd61n14yw9mg1dvp000000gq/T//ccHuyrxB.o

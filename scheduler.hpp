@@ -107,7 +107,7 @@ extern "C" void SysTick_handler() {
 void systick_init(){
     *SCB_SHPR3 |= (0xFF << 16); //set PendSV to lowest priority
     *SCB_CPACR |= (0xF << 20); //enavle FPU
-    *SYST_RVR = 16000; //set timer to countdown from 16,000
+    *SYST_RVR = 168000; //set timer to countdown from 16,000
     *SYST_CVR = 0;
     *SYST_CSR = (1 << 2) | (1 << 1) | (1 << 0);
 }
@@ -150,6 +150,7 @@ void task_init(TCB& tcb, const char* name, void (*func)(), uint32_t* stack, uint
     tcb.state = Ready;
     tcb.priority = priority;
     tcb.context_switches = 0;
+    tcb.exc_return = 0xFFFFFFFD;
 }
 
 void task_create(TCB& tcb, const char* name, void (*func)(), uint32_t* stack, uint32_t stack_size, int priority){

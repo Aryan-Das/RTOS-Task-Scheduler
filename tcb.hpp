@@ -21,6 +21,7 @@ struct TCB{
     uint32_t sleep_until;
     uint32_t context_switches;
     uint32_t stack_size;
+    uint32_t exc_return;
 };
 
 

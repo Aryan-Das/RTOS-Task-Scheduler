@@ -101,6 +101,7 @@ PendSV_handler:
     ldr r1, =current_task
     ldr r1, [r1]
     str r0, [r1, #8]
+    str lr, [r1, #36]
 
     skip_save:
     @ call the schedule function, which moves to the next task 
@@ -112,6 +113,7 @@ PendSV_handler:
     ldr r1, =current_task
     ldr r1, [r1]
     ldr r0, [r1, #8]
+    ldr lr, [r1, #36]
     ldmia r0!, {r4-r11}
     vldmia r0!, {s16-s31}
 
