@@ -142,7 +142,7 @@ void idle_task() {
 
 static uint32_t stack_imu[4096]    __attribute__((aligned(8)));
 static uint32_t stack_control[4096]   __attribute__((aligned(8)));
-static uint32_t stack_telemetry[12288] __attribute__((aligned(8)));
+static uint32_t stack_telemetry[512] __attribute__((aligned(8)));
 static uint32_t stack_stats[1024]     __attribute__((aligned(8)));
 static uint32_t stack_idle[512]       __attribute__((aligned(8)));
 
@@ -160,7 +160,7 @@ int main(){
     sem_init(&data_ready, 0, 8);
     task_create(tcb_imu,       "imu",       imu_task,       stack_imu,       4096, 2);
     task_create(tcb_control,   "control",   control_task,   stack_control,   4096, 1);
-    task_create(tcb_telemetry, "telemetry", telemetry_task, stack_telemetry, 12288, 1);
+    task_create(tcb_telemetry, "telemetry", telemetry_task, stack_telemetry, 512, 1);
     task_create(tcb_stats,     "stats",     stats_task,     stack_stats,     1024, 1);
     task_create(tcb_idle,      "idle",      idle_task,      stack_idle,      512,  0);
 
