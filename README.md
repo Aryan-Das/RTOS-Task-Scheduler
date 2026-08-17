@@ -8,18 +8,28 @@
 - **Counting semaphore:** producer/consumer signaling with blocking and wakeup
 - **Per-task stats:** context switch count, stack high-water mark, state, priority
 - **Sensor pipeline demo:** simulated ADC -> low-pass filter -> telemetry over UART
+- **Real Hardware demo and telemetry plotting** -> accelerometer data demo and Python plotting functionality
 
-## Sensor Pipeline Demo
+## Accelerometer Demo
+
+https://github.com/user-attachments/assets/d4fd11c5-0f62-49c2-9e7a-52af7677f270
+
 ```                                       
-  sensor_task──>sem_post──> control_task
-  (10ms, sine  sensor_mutex  (low-pass
-   + noise)        │          filter)
-                   │              │
-              telemetry_task <────┘
-              (500ms, UART)   sensor_mutex
- 
-  stats_task (2000ms) ── prints per-task metrics
-  idle_task           ── wfi when nothing runnable
+imu_task (10ms) ──> latest_accel ──> control_task ──> filtered_output
+      │                  │              (low-pass)        │
+      │                  │                                  │
+      └─ sem_post ─────> data_ready                         │
+                         │                                  │
+                         └──> control_task                  v
+                                                    telemetry_task
+imu_task ──> latest_accel.x ──> pid_task ──> pid_state   (500ms, UART/SWO)
+                                  (PID)              │
+                                                     │
+                    mutex-protected state ───────────┘
+
+stats_task (2000ms) ──> per-task state / priority / switches / stack HWM
+idle_task             ──> wfi when nothing runnable
+scheduler             ──> SysTick / PendSV ──> task switching
 ```
 
 ## Memory Layout
@@ -48,6 +58,11 @@ make qemu
 ```
  
 Exit QEMU with `Ctrl+A` then `X`.
+
+**Flash to physical STM32F4 Discovery:**
+```bash
+make flash
+```
 
 ## File Structure
  
