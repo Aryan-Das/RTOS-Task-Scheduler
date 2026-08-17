@@ -77,7 +77,13 @@ rtos/
 ├── semaphore.hpp     # Semaphore struct, sem_post/wait
 ├── uart.hpp          # UART driver, print helpers, uart_print_float, uart_print_num, and uart_print_str
 ├── math_utils.hpp    # sinf() Taylor Series approximation
-└── main.cpp          # task functions, virtual stack definitions, main()
+├── demo.cpp          # tasks, stack definitions, and main for physical accelerometer demo
+├── clock.hpp         # SYSCLK configuration
+├── spi.hpp           # SPI driver
+├── lis3dsh.hpp       # accelerometer driver
+├── plot_telemetry.py # frontend plotting for data received through UART
+└── main.cpp          # task functions, virtual stack definitions, main() for emulated demo
+
 ```
 
 
